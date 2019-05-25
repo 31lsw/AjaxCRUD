@@ -46,7 +46,6 @@
 	페이징 처리 요구사항
 	1. 한 페이지당 앵커 태그를 사용한 페이지 이동 링크 10개씩이 나타나고, 페이지 번호 클릭 시 해당 페이지로 이동할 수 있게 구현
 	( 페이지 번호 클릭 시 해당 페이지로 이동할 수 있는 앵커 태그 생성 및 이벤트 처리할 콜백함수)
-	
 */
 
 $(document).ready(function() {
@@ -156,37 +155,29 @@ $(document).ready(function() {
 	});
 		
 	
+	
 	// 멤버 목록
 	
-	/* 페이지 이동을 위해 사용할 변수 선언 */
-	let currentPage;
-	const firstPage = 1; // 처음으로 이동은 1페이지
-	let lastPage;
-	let previousPage;
-	let nextPage;
+	/*
+		페이징 처리 요구사항
+		1. 처음/이전/다음/마지막 페이지가 버튼으로 보이고, 이를 클릭했을 때 해당 페이지로 이동할 수 있게 구현해달라
+		2. 한 페이지당 앵커 태그를 사용한 페이지 이동 링크 10개씩이 나타나고, 페이지 번호 클릭 시 해당 페이지로 이동할 수 있게 구현해달라
+	*/
 	
-	console.log('-------- ready 후 -------------');
+	/* 페이지 이동을 위해 사용할 변수 선언 */
+	let currentPage; // 멤버 목록 클릭 이벤트 발생 시 연결된 함수 통해 비동기요청 진행될 때 매개변수 currentPage에 입력될 값
 	console.log('[ 페이지 이동을 위한 변수 ]');
 	console.log('currentPage: ' + currentPage);
-	console.log('firstPage: ' + firstPage);
-	console.log('previousPage: ' + previousPage);
-	console.log('nextPage: ' + nextPage);
-	console.log('lastPage: ' + lastPage);	
 	
-	/* 굳이 이 스코프에 있을 필요는 없는 변수 데이터 흐름 확인차 배치 */
-	let startPageNo;
-	console.log('startPageNo: ' + startPageNo);
-	let endPageNo;
-	console.log('endPageNo: ' + endPageNo);
+	/* 코드 읽기 불편해서 상위 스코프로 빼놓은 변수 */
+	const firstPage = 1; // 첫 페이지는 1페이지로 상수처리
+	let lastPage; // 마지막 페이지
+	let previousPage; // 이전
+	let nextPage; // 다음
+	let startPageNo; // 하단 페이지 인덱스 시작번호
+	let endPageNo; // 하단 페이지 인덱스 끝번호
 	
-	let pageIndexNo; // 하단 페이지 번호 인덱싱
-	console.log('pageIndexNo: ' + pageIndexNo);
-	
-	/* index() 이용하면서 이제 이게 필요 없어졌다 
-	let pageIndexNoArray; // 하단 페이지 번호를 담은 배열
-	console.log('pageIndexNoArray: ' + pageIndexNoArray);
-	console.log('---------------------------');
-	*/
+	/* 콜백함수 호출 시 currentPage값 입력해 GET방식 비동기 요청*/
 	$('#btnList').click(function() {
 		/* 유효성 검사 */
 		console.log('#btnList click.....');
@@ -196,7 +187,7 @@ $(document).ready(function() {
 			type : 'GET',
 			data : {'currentPage' : currentPage},
 			success : function(data) { // data -> json map (데이터 3가지 받아온다 : list, currentPage, lastPage)
-			
+							
 				// 데이터를 잘 받아왔는지 확인
 				console.log('-------- success 후 (비동기 요청 성공 후 받아온 데이터) -------------');
 				console.log('[ 멤버 목록 데이터 ] ');
@@ -207,10 +198,9 @@ $(document).ready(function() {
 				console.log("data.startPageNo : " + data.startPageNo); // 하단 페이지 인덱스 시작번호 
 				console.log("data.endPageNo : " + data.endPageNo); // 하단 페이지 인덱스 끝번호
 				console.log('-------------------------------------------------------');
-				
-								
-				// 아이디가 list인 태그 내의 내용을 비운다
-				$('#list').empty();
+												
+				// 페이지 이동 시 내용들을 새롭게 갱신하기 위해 기존에 뿌린 목록을 비운다 
+				$('#list').empty(); // 아이디가 list인 태그 내의 내용을 비운다
 				
 				// 멤버 목록 뿌려준다
 				$(data.list).each(function(index, item) { // data.list -> json member list
@@ -223,23 +213,15 @@ $(document).ready(function() {
 					$('#list').append('<td>'+ item.gender+ '</td>');
 					$('#list').append('</tr>');
 				});
-				
-				
-				
-				// 처음,이전,다음,마지막 페이지 이동용 앵커 태그 생성 하기
-				
-				/* 윗단 스코프에서 페이징을 위해 만든 변수에 셋팅 */
-				currentPage = data.currentPage;
-				lastPage = data.lastPage;
-				previousPage = currentPage - 1;
-				nextPage = currentPage + 1;
-				/*
-				let startPageNo;
-				let endPageNo;
-				*/
-				startPageNo = data.startPageNo;
-				endPageNo = data.endPageNo;
-				
+								
+				// 페이지 이동을 위해 사용할 변수 셋팅
+				currentPage = data.currentPage; // 현재 페이지
+				lastPage = data.lastPage; // 마지막 페이지
+				previousPage = currentPage - 1; // 이전
+				nextPage = currentPage + 1; // 다음
+				startPageNo = data.startPageNo; // 하단 페이지 인덱스 시작번호
+				endPageNo = data.endPageNo; // 하단 페이지 인덱스 끝번호
+										
 				// 받아온 데이터로 잘 셋팅됐는지 확인
 				console.log('-------- setting 후 (페이징 이동을 위한 변수에 받아온 데이터로 대입 후)-------------');
 				console.log('[ 처음/이전/다음/마지막 페이지 이동을 위한 데이터 ] ');
@@ -253,57 +235,76 @@ $(document).ready(function() {
 				console.log('endPageNo: ' + endPageNo);
 				console.log('------------------------------------------------------------------');
 				
-				// 앵커 태그 출력 분기
+				// 멤버 목록 페이징
+				/* 
+					페이지 이동과 관련된 이벤트 처리
+						1. 처음/이전/다음/마지막 클릭시 콜백함수 호출
+						2. 색인번호 클릭 시 콜백함수 호출
+				*/
+				
+				/* 요구사항 1. 처음,이전,다음,마지막 페이지 이동 구현 */
+				
+				// 앵커 태그 출력 분기 주기
 				// jQuery에서 가장 빈번하게 사용하는 이펙트 함수 : show() / hide() / toggle() ....
-				// 1. 현재 페이지가 1이상 일 경우만 처음/이전 버튼 표시
 				if(currentPage > 1) { 
-					$('.page-links-firstPage-and-previousPage').show();
+					$('.page-links-firstPage-and-previousPage').show(); // 2페이지 부터 처음/이전 버튼 표시
 				} else {
 					$('.page-links-firstPage-and-previousPage').hide();
 				}
-				// 2. 현재 페이지가 마지막 페이지를 초과하는 경우 다음/마지막 버튼 표시 안함
 				if(currentPage < lastPage) {
 					$('.page-links-nextPage-and-lastPage').show();
 				} else {
-					$('.page-links-nextPage-and-lastPage').hide();
-				}
-				// 3. 페이지 색인번호 링크 표시
-				// 페이지 이동 시 색인 번호 중복 제거 후 새롭게 갱신
-				$('.page-links-of-number-indexed-pages').empty();
-				// 페이지 색인 번호로 이동하는 앵커 태그 생성 
-				pageIndexNoArray = new Array();
-				/*
-				let pageIndexNo; // 하단 페이지 번호 인덱싱
-				let pageIndexNoArray; // 하단 페이지 번호를 담은 배열
-				console.log('pageIndexNo: ' + pageIndexNo);
-				console.log('pageIndexNoArray: ' + pageIndexNoArray);
-				*/
-				for(pageIndexNo = startPageNo; pageIndexNo < endPageNo + 1; pageIndexNo++){
-					// 1~10, 11~20, ... 꼴로 한 페이지 당 색인 번호 링크로 페이지 이동이 가능한 앵커 태그 10개만 생성
-					$('.page-links-of-number-indexed-pages').append('<a class="page-link" href="#">'+ pageIndexNo +'</a> &nbsp;'); // &nbsp; -> non-breaking space, 공백문자 (줄바꿈을 하지않고 한칸 띄운다) 
-					// 색인 번호들을 배열에 담아 군을 만든다. 멤버목록 요청 시 매개변수 currentPage 입력 값으로 이용할 거임
-					
-					/* index() 이용하면서 이제 이게 필요 없어졌다
-					pageIndexNoArray.push(pageIndexNo); // 아직까진 이렇게 밖에 못하겠다... 처음에는 $('.page-link'). 또는 $('.page-links-of-number-indexed-pages a') 태그위치 참조해 text()로 앵커 태그 안의 텍스트(pageIndexNo)를 '딱 하나씩만' 꺼내 목록 요청 시currentPage로 입력하고 싶었는데, 모두 다 읽어버려서 더 공부하면서 방법을 찾아보자...
-					*/
+					$('.page-links-nextPage-and-lastPage').hide(); // 마지막 페이지는 다음/마지막 버튼 표시 안함
 				}
 				
 				
-				/* index() 이용하면서 이제 이게 필요 없어졌다 
-				// 색인 번호들이 배열에 잘 담겨졌는지 확인
-				console.log('[ 페이지 번호를 담은 배열, 해당 페이지 번호로 이동 요청 시 currentPage로 넘겨줄 값을 뽑을 때 이용할 객체 ] ');
-				console.log('pageIndexNoArray : ' + pageIndexNoArray);
-				*/
-				
-				// 색인번호 링크로 페이지 이동
-				$('.page-link').click(function(){
-					console.log('.page-link click.....');
-					// 가장 쉽게 currentPage를 넘겨주는 방법은 $('.page-link') 앵커 태그 사이의 숫자 텍스트(pageIndexNo)를 추출해 넘기는 방법인데, 아직 방법을 못찾았다
-					// 그러나 비슷한 이치로 선택된 요소의 index 얻는 방법으로 해결했다
-					console.log('$(this).index() : ' + $(this).index());
-					currentPage = $(this).index() + 1; // 배열의 인덱스 순서처럼 1번째 요소면 0, 2번째 요소면 1, ... , n번째 요소면 (n-1)로 숫자값 리턴한다. 따라서 +1 해준다. 
+				// 처음/이전/다음/마지막 클릭 이벤트 처리
+				/* 처음 */
+				$('.firstPage').click(function(){
+					console.log('#firstPage click.....');
+					currentPage = firstPage;
 					$('#btnList').trigger('click');
 				});
+				/* 이전 */
+				$('.previousPage').click(function(){
+					console.log('#previousPage click.....');
+					currentPage = previousPage;
+					$('#btnList').trigger('click');
+				});
+				/* 다음 */
+				$('.nextPage').click(function() {
+					console.log('#nextPage click.....');
+					currentPage = nextPage;
+					$('#btnList').trigger('click');
+				});
+				/* 마지막 */
+				$('.lastPage').click(function(){
+					console.log('#lastPage click.....');
+					currentPage = lastPage;
+					$('#btnList').trigger('click');
+				});
+				
+				
+				// 요구사항 2.  페이지 색인번호로 이동
+				
+				// 페이지 이동 시 기존에 뿌린 색인 번호 제거 후 새롭게 갱신
+				$('.page-links-of-number-indexed-pages').empty();
+				// 페이지 번호 클릭 시 해당 페이지로 이동할 수 있는 앵커 태그 생성
+				for(let pageIndexNo = startPageNo; pageIndexNo < endPageNo + 1; pageIndexNo++){
+					// 1~10, 11~20, ... 꼴로 한 페이지당 색인번호 클릭 시 해당 페이지로 이동이 가능한 앵커 태그 10개 생성
+					$('.page-links-of-number-indexed-pages').append('<a class="page-link" href="#">'+ pageIndexNo +'</a> &nbsp;'); // &nbsp; -> non-breaking space, 공백문자 (줄바꿈을 하지않고 한칸 띄운다) 
+					
+				}
+				
+				// 색인번호 링크 클릭 시 페이지 이동 처리
+				$('.page-links-of-number-indexed-pages a').click(function(){
+					console.log('.page-link click.....');
+					// 가장 쉽게 currentPage를 넘겨주는 방법은 $('.page-link') 앵커 태그 사이의 숫자 텍스트(pageIndexNo)를 추출해 넘기는 방법인데, 아직 방법을 못찾았다
+					console.log('currentPage(index + 1): ' + ($(this).index() + 1)); // 그러나 비슷한 이치로 선택된 요소의 index 얻는 방법으로 해결했다
+					currentPage = $(this).index() + 1; // 배열의 인덱스 순서처럼 1번째 요소면 0, 2번째 요소면 1, ... , n번째 요소면 (n-1)로 숫자값 리턴한다. 따라서 +1 해준다. 
+					$('#btnList').trigger('click');
+				});			
+				
 				
 			}
 		});
@@ -311,39 +312,7 @@ $(document).ready(function() {
 	
 	// ready 이벤트 시 멤버 목록 바로 뿌려줄 수 있도록 버튼클릭 트리거 처리
 	$('#btnList').trigger('click');
-	
-	
-	// 처음/이전/다음/마지막 이동
-	/* 처음 */
-	$('#firstPage').click(function(){
-		console.log('#firstPage click.....');
-		currentPage = firstPage;
-		$('#btnList').trigger('click');
-	});
-	
-	/* 이전 */
-	$('#previousPage').click(function(){
-		console.log('#previousPage click.....');
-		currentPage = previousPage;
-		$('#btnList').trigger('click');
-	});
-	
-	/* 다음 */
-	$('#nextPage').click(function() {
-		console.log('#nextPage click.....');
-		currentPage = nextPage;
-		$('#btnList').trigger('click');
-	});
-
-	/* 마지막 */
-	$('#lastPage').click(function(){
-		console.log('#lastPage click.....');
-		currentPage = lastPage;
-		$('#btnList').trigger('click');
-	});
-	
-	
-	
+		
 });
 	
 	
@@ -400,315 +369,19 @@ $(document).ready(function() {
 	
 	<span class="page-links-firstPage-and-previousPage">
 		<!-- 처음/이전 이동용 태그 (출력 분기를 나눠 jQuery 이펙트 함수로 출력)  -->
-		<button type="button" id="firstPage">처음</button>
-		<button type="button" id="previousPage">이전</button>
+		<a class="firstPage" href="#">처음</a>
+		<a class="previousPage" href="#">이전</a>
 	</span>
 	
 	<span class="page-links-of-number-indexed-pages">
-		<!-- 번호 색인된 페이지 직접 이동용 앵커 태그 -->
-		
-		<!-- 
-		jQuery로 반복문 처리해버려서 주석처리
-		<a class="pageIndexNo1" href="#">1</a>
-		<a class="pageIndexNo2" href="#">2</a>
-		<a class="pageIndexNo3" href="#">3</a>
-		<a class="pageIndexNo4" href="#">4</a>
-		<a class="pageIndexNo5" href="#">5</a>
-		<a class="pageIndexNo6" href="#">6</a>
-		<a class="pageIndexNo7" href="#">7</a>
-		<a class="pageIndexNo8" href="#">8</a>
-		<a class="pageIndexNo9" href="#">9</a>
-		<a class="pageIndexNo10" href="#">10</a>
-		-->
+		<!--  페이지 번호 클릭 시 해당 페이지로 이동할 수 있는 앵커 태그 생성 (jQuery 반복문 처리로 출력) -->
 	</span>
 	
 	<span class="page-links-nextPage-and-lastPage">
 		<!-- 다음/마지막 이동용 태그 (출력 분기를 나눠 jQuery 이펙트 함수로 출력)  -->
-		<button type="button" id="nextPage">다음</button>
-		<button type="button" id="lastPage">끝</button>
+		<a class="nextPage" href="#">다음</a>
+		<a class="lastPage" href="#">끝</a>
 	</span>
 	
-=======
-*/
-
-$(document).ready(function() {
-	
-	// 멤버 삭제
-	$('#btnRemove').click(function() { // $('#btnRemove').click()
-		/* 유효성 검사 */
-		console.log('#btnRemove click.....');
-		if ($('.ck:checked') == false) {
-			alert("삭제를 원하는 항목을 선택하세요");
-		} else {
-			let ck = new Array(); // let ck = [];
-			$('.ck:checked').each(function(index, item) {
-				ck.push($(item).val());
-			});			
-			// 비동기 요청
-			$.ajax({
-				url : '/removeMember',
-				type : 'POST',
-				data : {
-					'ck' : ck
-				},
-				success : function(data) {
-					$('#btnList').trigger('click');
-				}
-			});
-		}
-		
-	});
-	
-	// 멤버 추가
-	$('#btnAdd').click(function() {
-		/* 유효성 검사 */
-		console.log('#btnAdd click.....');
-		if ($('#id').val() == "") {
-			alert("id를 입력하세요");
-		} else if ($('#pw').val() == "") {
-			alert("pw를 입력하세요");
-		} else if ($('#name').val() == "") {
-			alert("name를 입력하세요");
-		} else if ($('#age').val() == "") {
-			alert("age를 입력하세요");
-		} else if ($('#gender').val() == "") {
-			alert("gender를 선택하세요");
-		} else {
-			let id = $('#id').val();
-			let pw = $('#pw').val();
-			let name = $('#name').val();
-			let age = $('#age').val();
-			let gender = $('#gender').val();
-			// 비동기 요청
-			$.ajax({
-				url : '/addMember',
-				type : 'POST',
-				data : {
-					'id' : id,
-					'pw' : pw,
-					'name' : name,
-					'age' : age,
-					'gender' : gender
-				},
-				success : function() {
-					$('#btnList').trigger('click');
-				}
-			});
-		}
-		
-	});
-	
-	// 멤버 수정
-	$('#btnModify').click(function() {
-		console.log('#btnModify click.....');
-		/* 유효성 검사 */
-		if ($('#id').val() == "") {
-			alert("id를 입력하세요");
-		} else if ($('#pw').val() == "") {
-			alert("pw를 입력하세요");
-		} else if ($('#name').val() == "") {
-			alert("name를 입력하세요");
-		} else if ($('#age').val() == "") {
-			alert("age를 입력하세요");
-		} else if ($('#gender').val() == "") {
-			alert("gender를 입력하세요");
-		} else {
-			let id = $('#id').val();
-			let pw = $('#pw').val();
-			let name = $('#name').val();
-			let age = $('#age').val();
-			let gender = $('#gender').val();
-			// 비동기 요청
-			$.ajax({
-				url : '/modifyMember',
-				type : 'POST',
-				data : {
-					'id' : id,
-					'pw' : pw,
-					'name' : name,
-					'age' : age,
-					'gender' : gender
-				},
-				success : function() {
-					$('#btnList').trigger('click');
-				}
-			});
-		}
-		
-	});
-		
-	
-	// 멤버 목록
-	
-	/* 페이징을 위한 변수 */
-	let currentPage;
-	let firstPage = 1; // 처음으로 이동은 1페이지
-	let lastPage;
-	let previousPage;
-	let nextPage;
-	console.log('currentPage: ' + currentPage);
-	console.log('firstPage: ' + firstPage);
-	console.log('previousPage: ' + previousPage);
-	console.log('nextPage: ' + nextPage);
-	console.log('lastPage: ' + lastPage);
-		
-	$('#btnList').click(function() {
-		/* 유효성 검사 */
-		console.log('#btnList click.....');
-		
-		$.ajax({	
-			url : '/getMembers',
-			type : 'GET',
-			data : {'currentPage' : currentPage},
-			success : function(data) { // data -> json map (데이터 3가지 받아온다 : list, currentPage, lastPage)
-			
-				// 데이터를 잘 받아왔는지 확인
-				console.log('data.list', data.list); // 멤버 목록 데이터
-				console.log("data.currentPage : " + data.currentPage); // 현재 페이지
-				console.log("data.lastPage : " + data.lastPage); // 마지막(전체) 페이지
-				
-				// 아이디가 list인 태그 내의 내용을 비운다
-				$('#list').empty();
-				
-				// 멤버 목록 뿌려준다
-				$(data.list).each(function(index, item) { // data.list -> json member list
-					$('#list').append('<tr>');
-					$('#list').append('<td><input type="checkbox" class="ck" value="'+item.id+'"></td>');
-					$('#list').append('<td>'+ item.id + '</td>');
-					$('#list').append('<td>'+ item.pw + '</td>');
-					$('#list').append('<td>'+ item.name	+ '</td>');
-					$('#list').append('<td>'+ item.age + '</td>');
-					$('#list').append('<td>'+ item.gender+ '</td>');
-					$('#list').append('</tr>');
-				});
-				
-				// 처음,이전,다음,마지막 이동용 앵커 태그 생성
-				/* 윗단에서 페이징을 위해 만든 변수에 셋팅 */
-				currentPage = data.currentPage;
-				lastPage = data.lastPage;
-				previousPage = currentPage - 1;
-				nextPage = currentPage + 1;
-				console.log('currentPage: ' + currentPage);
-				console.log('firstPage: ' + firstPage);
-				console.log('previousPage: ' + previousPage);
-				console.log('nextPage: ' + nextPage);
-				console.log('lastPage: ' + lastPage);
-				
-				// 앵커 태그 출력 분기
-				// jQuery에서 가장 빈번하게 사용하는 이펙트 함수 : show() / hide() / toggle() ....
-				if(currentPage > 1) {
-					$('#firstPage').show(); // 현재 페이지가 1이상 일 경우만 처음 버튼 표시
-					$('#previousPage').show(); // 현재 페이지가 1이상 일 경우만 이전 버튼 표시
-				} else {
-					$('#firstPage').hide();
-					$('#previousPage').hide();
-				}
-				if(currentPage < lastPage) {
-					$('#nextPage').show(); // 현재 페이지가 마지막 페이지를 초과하는 경우 다음 버튼 표시 안함
-					$('#lastPage').show(); // 현재 페이지가 마지막 페이지를 초과하는 경우 마지막 버튼 표시 안함
-				} else {
-					$('#nextPage').hide();
-					$('#lastPage').hide();
-				}
-				
-			}
-		});
-	});
-	
-	// ready 이벤트 시 멤버 목록 바로 뿌려줄 수 있도록 버튼클릭 트리거 처리
-	$('#btnList').trigger('click');
-	
-		
-	// 처음/이전/다음/마지막 이동
-	/* 처음 */
-	$('#firstPage').click(function(){
-		console.log('#firstPage click.....');
-		currentPage = firstPage;
-		$('#btnList').trigger('click');
-	});
-	
-	/* 이전 */
-	$('#previousPage').click(function(){
-		console.log('#previousPage click.....');
-		currentPage = previousPage;
-		$('#btnList').trigger('click');
-	});
-	
-	/* 다음 */
-	$('#nextPage').click(function() {
-		console.log('#nextPage click.....');
-		currentPage = nextPage;
-		$('#btnList').trigger('click');
-	});
-
-	/* 마지막 */
-	$('#lastPage').click(function(){
-		console.log('#lastPage click.....');
-		currentPage = lastPage;
-		$('#btnList').trigger('click');
-	});
-	
-	
-	
-});
-</script>
-</head>
-<body>
-	<h1>Member</h1>
-	<table border="1">
-		<thead>
-			<tr>
-				<th>id</th>
-				<th>pw</th>
-				<th>name</th>
-				<th>age</th>
-				<th>gender</th>
-				<th>추가</th>
-				<th>수정</th>
-			</tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td><input type="text" id="id"></td>
-				<td><input type="password" id="pw"></td>
-				<td><input type="text" id="name"></td>
-				<td><input type="text" id="age"></td>
-				<td>
-					<select id="gender">
-						<option value="Male">남</option>
-						<option value="Female">여</option>
-					</select>
-				</td>
-				<td><button type="button" id="btnAdd">add</button></td>
-				<td><button type="button" id="btnModify">modify</button></td>
-			</tr>
-		</tbody>
-	</table>
-
-	<button type="button" id="btnList">회원리스트</button>
-	<button type="button" id="btnRemove">remove</button>
-	<table border="1">
-		<thead>
-			<tr>
-				<th></th>
-				<th>id</th>
-				<th>pw</th>
-				<th>name</th>
-				<th>age</th>
-				<th>gender</th>
-			</tr>
-		</thead>
-		<tbody id="list">
-		</tbody>
-	</table>
-	
-	<div class="paging">
-		<!-- 처음/이전/다음/마지막 이동용 앵커 태그 (hidden 처리 후 출력 분기를 나눠 jQuery 이펙트 함수로 출력)  -->
-		<button type="button" hidden="hidden" id="firstPage">처음</button>
-		<button type="button" hidden="hidden" id="previousPage">이전</button>
-		<button type="button" hidden="hidden" id="nextPage">다음</button>
-		<button type="button" hidden="hidden" id="lastPage">끝</button>
-	</div>
-
 </body>
 </html>
