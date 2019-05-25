@@ -24,7 +24,6 @@ public class MemberController {
 		System.out.println("/getMembers 요청 [GET]");
 		System.out.println("MemberController.getMembers currentPage : "+currentPage);
 		Map<String, Object> map = memberService.getMemberList(currentPage);
-<<<<<<< HEAD
 		System.out.println("---------------- Controller ------------------");
 		System.out.println("[Return from memberService.getMemberList] map : "+map);
 		System.out.println(map.get("list") + " : list");
@@ -33,11 +32,6 @@ public class MemberController {
 		System.out.println(map.get("startPageNo") + " : startPageNo");
 		System.out.println(map.get("endPageNo") + " : endPageNo");
 		System.out.println("-------------------------------------------");
-=======
-		System.out.println("[return] memberService.getMemberList(currentPage) map : "+map);
-		System.out.println(map.get("currentPage") + " : currentPage");
-		System.out.println(map.get("lastPage") + " : lastPage");
->>>>>>> refs/remotes/AjaxCRUD/master
 		return map;
 		
 	}
