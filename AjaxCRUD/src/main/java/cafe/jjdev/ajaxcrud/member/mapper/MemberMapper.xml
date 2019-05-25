@@ -17,7 +17,11 @@
 			,age
 			,gender 
 		FROM member
+<<<<<<< HEAD
 		LIMIT #{BEGIN_ROW}, #{ROW_PER_PAGE};
+=======
+		LIMIT #{beginRow}, #{ROW_PER_PAGE};
+>>>>>>> refs/remotes/AjaxCRUD/master
 	</select>
 	
 	<!-- 멤버 추가 -->
