@@ -46,6 +46,20 @@
 	페이징 처리 요구사항
 	1. 한 페이지당 앵커 태그를 사용한 페이지 이동 링크 10개씩이 나타나고, 페이지 번호 클릭 시 해당 페이지로 이동할 수 있게 구현
 	( 페이지 번호 클릭 시 해당 페이지로 이동할 수 있는 앵커 태그 생성 및 이벤트 처리할 콜백함수)
+	
+	2019-05-26
+	1. 처음/이전/다음/마지막 앵커 태그 관련 이벤트 버블링 문제 : 한번 클릭했는데 여러번 반복 클릭되는 문제처리
+	해결책은 3가지 정도 있었다. 최종적으로 커밋&푸쉬 하는 것은 방법 3
+	[방법 1] 처리 순서의 흐름을 고려해 충돌을 피한다. 해당 이벤트 처리코드 블록의 스코프를 변경, 한 단계 상위 스코프로 빼놓는다.
+	[방법 2] 처리 순서의 흐름을 고려해 페이지 이동과 관련한 모든 앵커 태그를 append로 추가하는 방식으로 통일하거나, body내에 미리 작성해둬서 이펙트함수 통해 출력의 분기를 주는 방식을 택하거나
+			둘 중에 한가지로 통일하는 게 좋은 것 같다. 태그와 관련 이벤트 처리 부분이 그룹핑이 되면서 코드를 모아놓기 때문에 확실히 가독성 면에서 좋은 것 같다.
+	[방법 3] 아는 것이 힘이다.
+		이벤트 버블링 방지 방법 2가지 : .unbind("event name"), event.stopPropagation()
+		기존에 가독성을 고려해 작성한 코드의 형태를 크게 변경하지 않거나 그대로 유지하면서 문제가 발생한 부분만 깔끔히 처리할 수 있다
+		코드가 천 줄이 넘었고 내가 작성한 코드도 아니였다면 과연 기존의 코드를 1,2처럼 보수하는 일이 가당키나 한가
+	
+	커밋&푸쉬를
+	방법1->방법2->방법3 순으로 진행할 것임
 */
 
 $(document).ready(function() {
@@ -153,8 +167,6 @@ $(document).ready(function() {
 		}
 		
 	});
-		
-	
 	
 	// 멤버 목록
 	
@@ -169,7 +181,7 @@ $(document).ready(function() {
 	console.log('[ 페이지 이동을 위한 변수 ]');
 	console.log('currentPage: ' + currentPage);
 	
-	/* 코드 읽기 불편해서 상위 스코프로 빼놓은 변수 */
+	/* 상위 스코프로 빼놓은 변수 */
 	const firstPage = 1; // 첫 페이지는 1페이지로 상수처리
 	let lastPage; // 마지막 페이지
 	let previousPage; // 이전
@@ -186,8 +198,8 @@ $(document).ready(function() {
 			url : '/getMembers',
 			type : 'GET',
 			data : {'currentPage' : currentPage},
-			success : function(data) { // data -> json map (데이터 3가지 받아온다 : list, currentPage, lastPage)
-							
+			success : function(data) { // data -> json map (데이터 3가지 받아온다 : list, currentPage, lastPage, startPageNo, endPageNo)
+				
 				// 데이터를 잘 받아왔는지 확인
 				console.log('-------- success 후 (비동기 요청 성공 후 받아온 데이터) -------------');
 				console.log('[ 멤버 목록 데이터 ] ');
@@ -195,8 +207,8 @@ $(document).ready(function() {
 				console.log('[ 페이지 이동을 위한 데이터 ] ');
 				console.log("data.currentPage : " + data.currentPage); // 현재 페이지
 				console.log("data.lastPage : " + data.lastPage); // 마지막(전체) 페이지
-				console.log("data.startPageNo : " + data.startPageNo); // 하단 페이지 인덱스 시작번호 
-				console.log("data.endPageNo : " + data.endPageNo); // 하단 페이지 인덱스 끝번호
+				console.log("data.startPageNo : " + data.startPageIndexNo); // 하단 페이지 인덱스 시작번호 
+				console.log("data.endPageNo : " + data.endPageIndexNo); // 하단 페이지 인덱스 끝번호
 				console.log('-------------------------------------------------------');
 												
 				// 페이지 이동 시 내용들을 새롭게 갱신하기 위해 기존에 뿌린 목록을 비운다 
@@ -213,7 +225,7 @@ $(document).ready(function() {
 					$('#list').append('<td>'+ item.gender+ '</td>');
 					$('#list').append('</tr>');
 				});
-								
+						
 				// 페이지 이동을 위해 사용할 변수 셋팅
 				currentPage = data.currentPage; // 현재 페이지
 				lastPage = data.lastPage; // 마지막 페이지
@@ -244,20 +256,25 @@ $(document).ready(function() {
 				
 				/* 요구사항 1. 처음,이전,다음,마지막 페이지 이동 구현 */
 				
+				//---------------- ↓↓↓ 현재 처음/이전/다음/마지막 앵커태그 출력분기 코드단 ↓↓↓ ------------------------
+								
 				// 앵커 태그 출력 분기 주기
 				// jQuery에서 가장 빈번하게 사용하는 이펙트 함수 : show() / hide() / toggle() ....
 				if(currentPage > 1) { 
-					$('.page-links-firstPage-and-previousPage').show(); // 2페이지 부터 처음/이전 버튼 표시
+					$('.page-links-firstPage-and-previousPage').show("slow"); // 2페이지 부터 처음/이전 버튼 표시
 				} else {
-					$('.page-links-firstPage-and-previousPage').hide();
+					$('.page-links-firstPage-and-previousPage').hide("slow");
 				}
+				
 				if(currentPage < lastPage) {
-					$('.page-links-nextPage-and-lastPage').show();
+					$('.page-links-nextPage-and-lastPage').show("slow");
 				} else {
-					$('.page-links-nextPage-and-lastPage').hide(); // 마지막 페이지는 다음/마지막 버튼 표시 안함
+					$('.page-links-nextPage-and-lastPage').hide("slow"); // 마지막 페이지는 다음/마지막 버튼 표시 안함
 				}
 				
-				
+				//---------------- ↓↓↓ 해당 앵커태그 이벤트 처리시 이벤트 버블링 현상 발생 부분 ↓↓↓ ------------------------
+										// 1회 클릭해도 어느 순간 무수히 클릭된 것으로 이벤트 처리
+										
 				// 처음/이전/다음/마지막 클릭 이벤트 처리
 				/* 처음 */
 				$('.firstPage').click(function(){
@@ -283,6 +300,51 @@ $(document).ready(function() {
 					currentPage = lastPage;
 					$('#btnList').trigger('click');
 				});
+								
+				/* ----------------↑↑↑ 현재 코드의 문제점은 ↑↑↑ ------------------------			
+				
+				처음/이전/다음/마지막 앵커 태그 1회 클릭 시, 브라우저 콘솔창 확인 결과 클릭 이벤트가 1번이 아닌 무수히 호출된다.(이벤트 버블링 현상)
+				물론 지금처럼 적은 코드량에서 첫 눈에 봤을 때
+				간단한 해결책은 처음/이전/다음/마지막 앵커태그의 클릭이벤트 처리 코드 부분을
+				멤버목록 클릭이벤트 처리와 같은 레벨의 스코프로 빼놓으면 바로 해결이 가능하다 	
+				하지만 작성 때부터 몇가지 아이디어와 팁을 알고 있었다면 작성 때부터 이런 문제를 발생시키지 않았을 것이였다
+				또한 JS/jQuery를 익히는 과정의 일부로 기록해둔다
+				
+				이 문제는 처리의 흐름을 생각해 보면 된다.
+				
+				처리의 흐름은 다음과 같다.
+				1. localhost/member.html 웹 페이지 ready시, 스크립트 단에서 trigger 클릭 처리로 멤버 목록 자동으로 뿌려줌
+				-> 2. '처음/이전/다음/마지막 앵커 태그'는 스크립트 단에서 append함수로 추가하는 식이 아니라, ready때부터 이미 페이지의 body내에 존재해서 '태그가 읽혀졌음'
+				-> 3. 그런데 해당 앵커 태그의 이벤트 처리는 '멤버 목록 클릭 시 생성됨'
+				-> 4. 트리거 처리로 멤버 목록이 한번 클릭됐으므로 현재페이지와 관련된 이전/다음/마지막에 대한 앵커태그 클릭 이벤트 처리 코드가 생성됨
+				-> 5. 그러면 다음 버튼만 생각해보자. 현재 클릭이벤트 처리코드보다 상위 스코프에서 선언된 let nextPage; 변수는 undefined로 초기화돼있다가, 멤버목록 클릭 트리거 처리 후, nextPage = currentPage+1; 순서에서 비로소 값이 정해진다.
+				-> 6. 이 상태에서 다음 버튼을 눌렀다고 치자.
+				-> 7. nextPage 변수에 담긴 값은 다음버튼 클릭 이벤트처리 블록을 통해  currentPage = nextPage; 이 이뤄지면서 ajax 비동기 요청의 data : {'currentPage' : currentPage}에 셋팅되고 비동기요청을 진행한다.
+				-> 8. $('#list').empty(); 로 기존 목록이 지워진다
+				-> 9. $('#list').append(..생략...) 새롭게 가져온 목록 뿌려준다
+				-> 10. 페이지 이동을 위해 사용할 변수가 셋팅된다.
+				-> 11. 다음 앵커 태그 출력의 분기를 결정
+				-> 12. 다음 앵커 클릭 이벤트 처리에 연결시킬 함수가 만들어진다
+				-> 13. 근데 이제부터 문제가 발생한다
+						' 이벤트 버블링 '
+						예컨데 클릭을 한번했지만 여러번 클릭한 것으로 이벤트 처리가 발생하는 현상
+						분명 흐름을 보면 반복문 블록 사이에 위치하지도 이벤트가 반복으로 처리될 리도 없다 
+				
+				검색을 통해 해결책 3가지를 알았고, 지금 이 글의 작성이 끝나면 3가지 방법 모두에 대해 차례를 나누어 push한다. 최종적으로 push해서 코드에 반영하는 것은 방법 2를 택함
+				
+				방법 1. (페이징과 관련된)모든 앵커 태그 출력을 스크립트 단에서 append등을 통해 뿌려주는 식으로 가거나,
+						아니면 애초에 body내에 미리 사용할 앵커 태그를 작성해두고 이펙트함수로 출력의 분기를 주는 식으로 가거나 둘 중 한가지로 통일한다.
+						동시에 앵커 태그와 연결된 이벤트 처리 코드도 같은 스코프 내에서 그룹핑해서 가독성을 높인다.
+				-> 페이지이동과 관련된 앵커태그를 뿌릴 방법을 일단 통일시킨 후 관련 이벤트처리 코드도 같은 스코프에서 그룹지어서 코드의 가독성도 높혀서 유지관리의 용이성을 높이고, 처리의 흐름에서 이벤트 버블링을 막는다.
+				
+				방법 2. 아는 것이 힘이다. (마지막 push때 최종 반영)
+				이벤트 버블링 방지 방법 2가지 : .unbind("event name"), event.stopPropagation()
+				를 알고 있었다면, 1처럼 코드를 어떻게 튜닝할지 고민할 필요조차 없다.
+				함수를 알고 있으면 그때그때 상황에 맞게 모든 상황에서 해결이 가능하고 기존에 공들여 작성한 코드의 가독성도 계속 유지할 수 있다.
+					
+				---------------------------------------------------- */
+				
+				
 				
 				
 				// 요구사항 2.  페이지 색인번호로 이동
@@ -292,17 +354,18 @@ $(document).ready(function() {
 				// 페이지 번호 클릭 시 해당 페이지로 이동할 수 있는 앵커 태그 생성
 				for(let pageIndexNo = startPageNo; pageIndexNo < endPageNo + 1; pageIndexNo++){
 					// 1~10, 11~20, ... 꼴로 한 페이지당 색인번호 클릭 시 해당 페이지로 이동이 가능한 앵커 태그 10개 생성
-					$('.page-links-of-number-indexed-pages').append('<a class="page-link" href="#">'+ pageIndexNo +'</a> &nbsp;'); // &nbsp; -> non-breaking space, 공백문자 (줄바꿈을 하지않고 한칸 띄운다) 
+					$('.page-links-of-number-indexed-pages').append('<a class="page-link" href="#">'+ pageIndexNo +'</a>&nbsp;'); // &nbsp; -> non-breaking space, 공백문자 (줄바꿈을 하지않고 한칸 띄운다) 
 					
 				}
 				
 				// 색인번호 링크 클릭 시 페이지 이동 처리
-				$('.page-link').click(function(){
+				$('.page-links-of-number-indexed-pages a').click(function(){
 					console.log('.page-link click.....');
 					// 가장 쉽게 currentPage를 넘겨주는 방법은 $('.page-link') 앵커 태그 사이의 숫자 텍스트(pageIndexNo)를 추출해 넘기는 방법인데, 아직 방법을 못찾았다. -> 찾았다. 기존 index()함수 사용시, 11페이지부터 다시 인덱스가 0~9가 되버리는 문제 해결
+					console.log('$(this).text(); ' + $(this).text());
 					currentPage = $(this).text();
 					$('#btnList').trigger('click');
-				});			
+				});		
 				
 				
 			}
@@ -311,10 +374,9 @@ $(document).ready(function() {
 	
 	// ready 이벤트 시 멤버 목록 바로 뿌려줄 수 있도록 버튼클릭 트리거 처리
 	$('#btnList').trigger('click');
-		
+	
+	
 });
-	
-	
 </script>
 </head>
 <body>
@@ -366,21 +428,25 @@ $(document).ready(function() {
 		</tbody>
 	</table>
 	
-	<span class="page-links-firstPage-and-previousPage">
-		<!-- 처음/이전 이동용 태그 (출력 분기를 나눠 jQuery 이펙트 함수로 출력)  -->
-		<a class="firstPage" href="#">처음</a>
-		<a class="previousPage" href="#">이전</a>
-	</span>
-	
-	<span class="page-links-of-number-indexed-pages">
-		<!--  페이지 번호 클릭 시 해당 페이지로 이동할 수 있는 앵커 태그 생성 (jQuery 반복문 처리로 출력) -->
-	</span>
-	
-	<span class="page-links-nextPage-and-lastPage">
-		<!-- 다음/마지막 이동용 태그 (출력 분기를 나눠 jQuery 이펙트 함수로 출력)  -->
-		<a class="nextPage" href="#">다음</a>
-		<a class="lastPage" href="#">끝</a>
-	</span>
-	
+	<div>
+		<!-- ↓↓↓ 처음/이전/다음/마지막 이동과 관련된 앵커 태그는 `body내에 애초에 만들고` script단에서 이펙트함수로 출력의 분기를 결정하는 식 ↓↓↓ -->
+		<span class="page-links-firstPage-and-previousPage">
+			<!-- 처음/이전 이동용 태그 (출력 분기를 나눠 jQuery 이펙트 함수로 출력) --> 
+			<a class="firstPage" href="#">처음</a>
+			<a class="previousPage" href="#">이전</a>
+		</span>
+		
+		<!-- ↓↓↓ 페이지 인덱스번호 앵커 태그는 `body내에 만들어두지 않고` script단에서 반복문 통해 append()사용해 출력하는 식 ↓↓↓ -->
+		<span class="page-links-of-number-indexed-pages">
+			<!--  페이지 번호 클릭 시 해당 페이지로 이동할 수 있는 앵커 태그 생성 (jQuery 반복문 처리로 출력) -->
+		</span>
+		
+		<span class="page-links-nextPage-and-lastPage">
+			<!-- 다음/마지막 이동용 태그 (출력 분기를 나눠 jQuery 이펙트 함수로 출력) --> 
+			<a class="nextPage" href="#">다음</a>
+			<a class="lastPage" href="#">끝</a>
+		<!-- ↑↑↑ --------------↑↑↑---------------------↑↑↑---------------------↑↑↑---------------- ↑↑↑ -->
+		</span>
+	</div>
 </body>
 </html>
