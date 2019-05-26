@@ -297,11 +297,10 @@ $(document).ready(function() {
 				}
 				
 				// 색인번호 링크 클릭 시 페이지 이동 처리
-				$('.page-links-of-number-indexed-pages a').click(function(){
+				$('.page-link').click(function(){
 					console.log('.page-link click.....');
-					// 가장 쉽게 currentPage를 넘겨주는 방법은 $('.page-link') 앵커 태그 사이의 숫자 텍스트(pageIndexNo)를 추출해 넘기는 방법인데, 아직 방법을 못찾았다
-					console.log('currentPage(index + 1): ' + ($(this).index() + 1)); // 그러나 비슷한 이치로 선택된 요소의 index 얻는 방법으로 해결했다
-					currentPage = $(this).index() + 1; // 배열의 인덱스 순서처럼 1번째 요소면 0, 2번째 요소면 1, ... , n번째 요소면 (n-1)로 숫자값 리턴한다. 따라서 +1 해준다. 
+					// 가장 쉽게 currentPage를 넘겨주는 방법은 $('.page-link') 앵커 태그 사이의 숫자 텍스트(pageIndexNo)를 추출해 넘기는 방법인데, 아직 방법을 못찾았다. -> 찾았다. 기존 index()함수 사용시, 11페이지부터 다시 인덱스가 0~9가 되버리는 문제 해결
+					currentPage = $(this).text();
 					$('#btnList').trigger('click');
 				});			
 				
