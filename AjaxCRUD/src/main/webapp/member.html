@@ -58,7 +58,7 @@
 		기존에 가독성을 고려해 작성한 코드의 형태를 크게 변경하지 않거나 그대로 유지하면서 문제가 발생한 부분만 깔끔히 처리할 수 있다
 		코드가 천 줄이 넘었고 내가 작성한 코드도 아니였다면 과연 기존의 코드를 1,2처럼 보수하는 일이 가당키나 한가
 	
-	현재 커밋&푸쉬 : [방법 2]
+	현재 커밋&푸쉬 : [방법 3] .unbind("event name") 통해 이벤트 버블링을 방지한다
 */
 
 $(document).ready(function() {
@@ -255,39 +255,45 @@ $(document).ready(function() {
 				*/
 				
 				/* 요구사항 1. 처음,이전,다음,마지막 페이지 이동 구현 */
-								
-				// 처음,이전,다음,마지막 클릭 시 해당 페이지로 이동할 수 있는 앵커 태그 생성
-				$('.page-links-firstPage-and-previousPage').empty();
-				if(currentPage > 1) {
-					$('.page-links-firstPage-and-previousPage').append('<a class="firstPage" href="#">처음</a>&nbsp;');
-					$('.page-links-firstPage-and-previousPage').append('<a class="previousPage" href="#">이전</a>&nbsp;');
-				}
-				$('.page-links-nextPage-and-lastPage').empty();
-				if(currentPage < lastPage){
-					$('.page-links-nextPage-and-lastPage').append('<a class="nextPage" href="#">다음</a>&nbsp;');
-					$('.page-links-nextPage-and-lastPage').append('<a class="lastPage" href="#">끝</a>&nbsp;');
+				
+				// 앵커 태그 출력 분기 주기
+				// jQuery에서 가장 빈번하게 사용하는 이펙트 함수 : show() / hide() / toggle() ....
+				if(currentPage > 1) { 
+					$('.page-links-firstPage-and-previousPage').show("slow"); // 2페이지 부터 처음/이전 버튼 표시
+				} else {
+					$('.page-links-firstPage-and-previousPage').hide("slow");
 				}
 				
+				if(currentPage < lastPage) {
+					$('.page-links-nextPage-and-lastPage').show("slow");
+				} else {
+					$('.page-links-nextPage-and-lastPage').hide("slow"); // 마지막 페이지는 다음/마지막 버튼 표시 안함
+				}
+												
 				// 처음/이전/다음/마지막 클릭 이벤트 처리
 				/* 처음 */
+				$('.firstPage').unbind("click"); // 이벤트 버블링 방지 방법 2가지 : .unbind("event name"), event.stopPropagation()
 				$('.firstPage').click(function(){
 					console.log('#firstPage click.....');
 					currentPage = firstPage;
 					$('#btnList').trigger('click');
 				});
 				/* 이전 */
+				$('.previousPage').unbind("click"); // 이벤트 버블링 방지 방법
 				$('.previousPage').click(function(){
 					console.log('#previousPage click.....');
 					currentPage = previousPage;
 					$('#btnList').trigger('click');
 				});
 				/* 다음 */
+				$('.nextPage').unbind("click"); // 이벤트 버블링 방지 방법
 				$('.nextPage').click(function() {
 					console.log('#nextPage click.....');
 					currentPage = nextPage;
 					$('#btnList').trigger('click');
 				});
 				/* 마지막 */
+				$('.lastPage').unbind("click"); // 이벤트 버블링 방지 방법
 				$('.lastPage').click(function(){
 					console.log('#lastPage click.....');
 					currentPage = lastPage;
@@ -378,15 +384,19 @@ $(document).ready(function() {
 	
 	<div>
 		<span class="page-links-firstPage-and-previousPage">
-			<!-- 처음/이전 클릭 시 해당 페이지로 이동할 수 있는 앵커 태그 생성 (스크립트단에서 생성해 출력) --> 
+			<!-- 처음/이전 이동용 태그 (출력 분기를 나눠 jQuery 이펙트 함수로 출력) --> 
+			<a class="firstPage" href="#">처음</a>
+			<a class="previousPage" href="#">이전</a>
 		</span>
 		
 		<span class="page-links-of-number-indexed-pages">
-			<!--  페이지 번호 클릭 시 해당 페이지로 이동할 수 있는 앵커 태그 생성 (스크립트단에서 반복문 처리로 출력) -->
+			<!--  페이지 번호 클릭 시 해당 페이지로 이동할 수 있는 앵커 태그 생성 (스크립트단에서 jQuery 반복문 처리로 출력) -->
 		</span>
 		
 		<span class="page-links-nextPage-and-lastPage">
-			<!-- 다음/마지막 클릭 시 해당 페이지로 이동할 수 있는 앵커 태그 생성 (스크립트단에서 생성해 출력) --> 
+			<!-- 다음/마지막 이동용 태그 (출력 분기를 나눠 jQuery 이펙트 함수로 출력) --> 
+			<a class="nextPage" href="#">다음</a>
+			<a class="lastPage" href="#">끝</a>
 		</span>
 	</div>
 </body>
