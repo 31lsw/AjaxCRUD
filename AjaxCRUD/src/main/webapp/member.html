@@ -62,48 +62,69 @@
 */
 
 $(document).ready(function() {
-	
-	// 멤버 삭제
-	$('#btnRemove').click(function() { // $('#btnRemove').click()
-		/* 유효성 검사 */
-		console.log('#btnRemove click.....');
-		if ($('.ck:checked') == false) {
-			alert("삭제를 원하는 항목을 선택하세요");
-		} else {
-			let ck = new Array(); // let ck = [];
-			$('.ck:checked').each(function(index, item) {
-				ck.push($(item).val());
-			});			
-			// 비동기 요청
-			$.ajax({
-				url : '/removeMember',
-				type : 'POST',
-				data : {
-					'ck' : ck
-				},
-				success : function(data) {
-					$('#btnList').trigger('click');
-				}
-			});
-		}
 		
-	});
+		// 유효성 검사 함수
+		function validationCheck() {
+			var getCheck= RegExp(/^[a-zA-Z0-9]{4,12}$/);
+			var getCheckName= RegExp(/^[가-힣]{3,10}$/); // 이름은 3자 이상 10자 이하만 허용
+			var getCheckAge = RegExp(/^[0-9]{1,2}$/); // 나이는 1개나 2개 자리 숫자만 허용
+			
+			//아이디 공백 확인
+			if($("#id").val() == ""){
+				alert("아이디 입력바람");
+				$("#id").focus();
+				return false;
+			}
+			
+			//아이디 유효성 검사
+			if(!getCheck.test($("#id").val())){
+				alert("형식에 맞게 입력해주세요");
+				$("#id").val("");
+				$("#id").focus();
+				return false;
+			}
+			
+			//비밀번호 유효성 검사
+			if(!getCheck.test($("#pw").val())) {
+				alert("pw는 4자 이상 12자 이하로 입력해주세요");
+				$("#pw").val("");
+				$("#pw").focus();
+				return false;
+			}
+			
+			//아이디랑 비밀번호랑 같은지
+			if ($("#id").val()==($("#pw").val())) {
+				alert("pw가 id와 똑같으면 안됩니다!");
+				$("#pw").val("");
+				$("#pw").focus();
+				return false;
+			}
+			
+			//이름 유효성 검사
+			if (!getCheckName.test($("#name").val())) {
+				alert("이름은 한글로만 똑띠 쓰세용");
+				$("#name").val("");
+				$("#name").focus();
+				return false;
+			}
+			
+			//나이 유효성 검사		
+			if(!getCheckAge.test($("#age").val())){
+				alert("나이를 제대로 확인하십쇼")
+				$("#age").val("");
+				$("#age").focus();
+				return false;
+			}
+		}
+	
+	
 	
 	// 멤버 추가
 	$('#btnAdd').click(function() {
 		/* 유효성 검사 */
 		console.log('#btnAdd click.....');
-		if ($('#id').val() == "") {
-			alert("id를 입력하세요");
-		} else if ($('#pw').val() == "") {
-			alert("pw를 입력하세요");
-		} else if ($('#name').val() == "") {
-			alert("name를 입력하세요");
-		} else if ($('#age').val() == "") {
-			alert("age를 입력하세요");
-		} else if ($('#gender').val() == "") {
-			alert("gender를 선택하세요");
-		} else {
+		console.log('validationCheck() return : ' + validationCheck());
+		if(validationCheck() != false){
 			let id = $('#id').val();
 			let pw = $('#pw').val();
 			let name = $('#name').val();
@@ -125,46 +146,67 @@ $(document).ready(function() {
 				}
 			});
 		}
-		
 	});
 	
-	// 멤버 수정
-	$('#btnModify').click(function() {
-		console.log('#btnModify click.....');
+	// 멤버 삭제
+	$('#btnRemove').click(function() { // $('#btnRemove').click()
 		/* 유효성 검사 */
-		if ($('#id').val() == "") {
-			alert("id를 입력하세요");
-		} else if ($('#pw').val() == "") {
-			alert("pw를 입력하세요");
-		} else if ($('#name').val() == "") {
-			alert("name를 입력하세요");
-		} else if ($('#age').val() == "") {
-			alert("age를 입력하세요");
-		} else if ($('#gender').val() == "") {
-			alert("gender를 입력하세요");
+		console.log('#btnRemove click.....');
+		console.log("$('.ck').is(':checked') return : " + $('.ck').is(':checked'));
+		if ($('.ck').is(':checked') == false) {
+			alert("삭제를 원하는 항목을 선택하세요");
 		} else {
-			let id = $('#id').val();
-			let pw = $('#pw').val();
-			let name = $('#name').val();
-			let age = $('#age').val();
-			let gender = $('#gender').val();
+			let ck = new Array(); // let ck = [];
+			$('.ck:checked').each(function(index, item) {
+				ck.push($(item).val());
+			});	
 			// 비동기 요청
 			$.ajax({
-				url : '/modifyMember',
+				url : '/removeMember',
 				type : 'POST',
 				data : {
-					'id' : id,
-					'pw' : pw,
-					'name' : name,
-					'age' : age,
-					'gender' : gender
+					'ck' : ck
 				},
-				success : function() {
+				success : function(data) {
 					$('#btnList').trigger('click');
 				}
 			});
 		}
 		
+	});
+	
+	// 멤버 수정
+	$('#btnModify').click(function() {
+		/* 유효성 검사 */
+		console.log('#btnModify click.....');
+		console.log("$('.ck').is(':checked') return : " + $('.ck').is(':checked'));
+		if ($('.ck').is(':checked') == false) {
+			alert("수정을 원하는 항목을 선택하세요");
+		} else {
+			//console.log('validationCheck() return : ' + validationCheck());
+			if(validationCheck() != false){
+				let id = $('#id').val();
+				let pw = $('#pw').val();
+				let name = $('#name').val();
+				let age = $('#age').val();
+				let gender = $('#gender').val();
+				// 비동기 요청
+				$.ajax({
+					url : '/modifyMember',
+					type : 'POST',
+					data : {
+						'id' : id,
+						'pw' : pw,
+						'name' : name,
+						'age' : age,
+						'gender' : gender
+					},
+					success : function() {
+						$('#btnList').trigger('click');
+					}
+				});
+			}
+		}
 	});
 	
 	// 멤버 목록
@@ -217,14 +259,14 @@ $(document).ready(function() {
 				$(data.list).each(function(index, item) { // data.list -> json member list
 					$('#list').append('<tr>');
 					$('#list').append('<td><input type="checkbox" class="ck" value="'+item.id+'"></td>');
-					$('#list').append('<td>'+ item.id + '</td>');
-					$('#list').append('<td>'+ item.pw + '</td>');
-					$('#list').append('<td>'+ item.name	+ '</td>');
-					$('#list').append('<td>'+ item.age + '</td>');
-					$('#list').append('<td>'+ item.gender+ '</td>');
+					$('#list').append('<td id="id2">'+ item.id + '</td>');
+					$('#list').append('<td id="pw2">'+ item.pw + '</td>');
+					$('#list').append('<td id="name2">'+ item.name	+ '</td>');
+					$('#list').append('<td id="age2">'+ item.age + '</td>');
+					$('#list').append('<td id="gender2">'+ item.gender+ '</td>');
 					$('#list').append('</tr>');
 				});
-						
+				
 				// 페이지 이동을 위해 사용할 변수 셋팅
 				currentPage = data.currentPage; // 현재 페이지
 				lastPage = data.lastPage; // 마지막 페이지
@@ -300,6 +342,26 @@ $(document).ready(function() {
 					$('#btnList').trigger('click');
 				});
 				
+				// 체크한 값으로 폼 채우기
+				$('.ck').change(function(){
+					console.log('체크!!!');
+					if($(".ck").is(":checked")){
+			            //alert("체크박스 체크함!");
+			            $('#id').val($('#id2').text());
+			            $('#pw').val($('#pw2').text());
+			            $('#name').val($('#name2').text());
+			            $('#age').val($('#age2').text());
+			            $('#gender').val($('#gender2').text());
+			        }else{
+			            //alert("체크박스 체크해제!");
+			            $('#id').val('');
+			            $('#pw').val('');
+			            $('#name').val('');
+			            $('#age').val('');
+			            $('#gender').val('');
+			        }
+					
+				});
 				
 				// 요구사항 2.  페이지 색인번호로 이동
 				
@@ -328,7 +390,9 @@ $(document).ready(function() {
 	
 	// ready 이벤트 시 멤버 목록 바로 뿌려줄 수 있도록 버튼클릭 트리거 처리
 	$('#btnList').trigger('click');
-		
+	
+	
+	
 	
 });
 </script>
