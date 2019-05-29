@@ -65,20 +65,22 @@ $(document).ready(function() {
 		
 		// 유효성 검사 함수
 		function validationCheck() {
-			var getCheck= RegExp(/^[a-zA-Z0-9]{4,12}$/);
-			var getCheckName= RegExp(/^[가-힣]{3,10}$/); // 이름은 3자 이상 10자 이하만 허용
+			var getCheck= RegExp(/^[a-zA-Z0-9]{4,12}$/); // ID와 PW는 영문 4자 이상 12자 이하만 허용
+			var getCheckName= RegExp(/^[가-힣]{3,15}$/); // 이름은 한글 2자 이상 15자 이하만 허용
 			var getCheckAge = RegExp(/^[0-9]{1,2}$/); // 나이는 1개나 2개 자리 숫자만 허용
-			
+						
 			//아이디 공백 확인
 			if($("#id").val() == ""){
-				alert("아이디 입력바람");
+				//alert("아이디를 입력하세요");
+				$("#id").attr('placeholder', '아이디를 입력하세요');
 				$("#id").focus();
 				return false;
 			}
 			
 			//아이디 유효성 검사
 			if(!getCheck.test($("#id").val())){
-				alert("형식에 맞게 입력해주세요");
+				//alert("아이디는 영문 4자 이상 12자 이하로 입력해주세요");
+				$("#id").attr('placeholder', '아이디는 영문 4자 이상 12자 이하로 입력해주세요');
 				$("#id").val("");
 				$("#id").focus();
 				return false;
@@ -86,15 +88,16 @@ $(document).ready(function() {
 			
 			//비밀번호 유효성 검사
 			if(!getCheck.test($("#pw").val())) {
-				alert("pw는 4자 이상 12자 이하로 입력해주세요");
+				//alert("비밀번호는 영문 4자 이상 12자 이하로 입력해주세요");
+				$("#pw").attr('placeholder', '비밀번호는 영문 4자 이상 12자 이하로 입력해주세요');
 				$("#pw").val("");
 				$("#pw").focus();
 				return false;
 			}
 			
 			//아이디랑 비밀번호랑 같은지
-			if ($("#id").val()==($("#pw").val())) {
-				alert("pw가 id와 똑같으면 안됩니다!");
+			if ($("#id").val() == ($("#pw").val())) {
+				alert("비밀번호가 아이디와 같을 수 없습니다!");
 				$("#pw").val("");
 				$("#pw").focus();
 				return false;
@@ -102,7 +105,8 @@ $(document).ready(function() {
 			
 			//이름 유효성 검사
 			if (!getCheckName.test($("#name").val())) {
-				alert("이름은 한글로만 똑띠 쓰세용");
+				//alert("이름은 한글 2자 이상 15자 이하만 허용");
+				$("#name").attr('placeholder', '이름은 한글 2자 이상 15자 이하로 입력해주세요');
 				$("#name").val("");
 				$("#name").focus();
 				return false;
@@ -110,14 +114,13 @@ $(document).ready(function() {
 			
 			//나이 유효성 검사		
 			if(!getCheckAge.test($("#age").val())){
-				alert("나이를 제대로 확인하십쇼")
+				//alert("나이를 제대로 확인하십쇼")
+				$("#age").attr('placeholder', '나이를 정확히 입력해주세요');
 				$("#age").val("");
 				$("#age").focus();
 				return false;
 			}
 		}
-	
-	
 	
 	// 멤버 추가
 	$('#btnAdd').click(function() {
